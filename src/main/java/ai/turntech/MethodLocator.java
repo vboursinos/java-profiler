@@ -70,42 +70,34 @@ public class MethodLocator {
         try (BufferedReader br = new BufferedReader(new FileReader(path.toFile()))) {
             String line;
             int lineNumber = 1;
-            boolean insideMethod = false;
-            boolean foundMethodStart = false;
-            boolean validMethod = false;
             int curlyBraceCount = 0; // Track nested curly braces
             StringBuilder methodLines = new StringBuilder();
             int startLine = 0;
             int endLine = 0;
+
             while ((line = br.readLine()) != null) {
-                String[] words = line.split(" ");
-                for (String word : words) {
-                    if (word.startsWith(methodName + "(") && line.endsWith("{")) {
-                        validMethod = true;
-                    }
-                }
-                if (!insideMethod && validMethod) {
-                    insideMethod = true;
-                    foundMethodStart = true;
+                if (line.contains(methodName + "(") && line.endsWith("{")) {
+                    // Found a method start
                     startLine = lineNumber;
-                    System.out.println("Method '" + methodName + "' Start Line: " + lineNumber);
-                }
-
-                if (insideMethod) {
+                    curlyBraceCount = 1;
+                    methodLines = new StringBuilder(line + "\n");
+                    System.out.println("-----------------------------");
+                    System.out.println(path);
                     System.out.println(line);
-                    methodLines.append(line).append("\n");
-                    curlyBraceCount += countOccurrences(line, '{');
-                    curlyBraceCount -= countOccurrences(line, '}');
-
-                    if (foundMethodStart && curlyBraceCount == 0) {
-                        insideMethod = false;
-                        endLine = lineNumber;
-                        System.out.println("Method '" + methodName + "' End Line: " + lineNumber);
-                        String relativePath = getRelativePath(basePath, path.toString());
-                        JsonInfo jsonInfo = new JsonInfo(relativePath, startLine, endLine, "popular-method", methodLines.toString());
-                        jsonInfoList.add(jsonInfo);
-
-                        break;
+                    // Continue reading lines until we find the end of the method
+                    while ((line = br.readLine()) != null) {
+                        System.out.println(line);
+                        methodLines.append(line).append("\n");
+                        curlyBraceCount += countOccurrences(line, '{');
+                        curlyBraceCount -= countOccurrences(line, '}');
+                        if (curlyBraceCount == 0) {
+                            endLine = lineNumber;
+                            String relativePath = getRelativePath(basePath, path.toString());
+                            JsonInfo jsonInfo = new JsonInfo(relativePath, startLine, endLine, "popular-method", methodLines.toString());
+                            jsonInfoList.add(jsonInfo);
+                            break;
+                        }
+                        lineNumber++;
                     }
                 }
                 lineNumber++;

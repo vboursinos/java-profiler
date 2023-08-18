@@ -17,23 +17,7 @@ import java.util.List;
 
 public class MethodLocator {
     private static List<JsonInfo> jsonInfoList;
-
-    public static void main(String[] args) {
-        String projectPath = "/home/vasilis/IdeaProjects/jackson-core/src/main/java/com/fasterxml/jackson/core/JsonFactory.java"; // Provide the actual project path
-        String methodName = "_decorate"; // Provide the method name
-        String basePath = "/home/vasilis/IdeaProjects";
-
-        try {
-            Files.walk(Paths.get(projectPath))
-                    .filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(".java"))
-                    .forEach(path -> findAndPrintMethodLines(path, basePath, methodName));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void main(List<MethodInfo> methodInfoList) throws IOException {
+    public void extractMethodContext(List<MethodInfo> methodInfoList) throws IOException {
         parseProjectFiles(methodInfoList);
         createJson();
     }

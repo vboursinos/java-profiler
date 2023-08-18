@@ -18,6 +18,6 @@ public class ArtemisJavaService {
     public static void main(String[] args) throws IOException {
         List<MethodInfo> methodInfoList = MethodProfiler.findPopularProjectMethods(filePath, methodPathPrefix, basePath, projectPrefix, numberOfMethods);
         MethodLocator methodLocator = new MethodLocator();
-        methodLocator.main(methodInfoList);
+        methodLocator.extractMethodContext(methodInfoList);
     }
 }

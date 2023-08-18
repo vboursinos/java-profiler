@@ -21,12 +21,13 @@ public class MethodLocator {
     public static void main(String[] args) {
         String projectPath = "/home/vasilis/IdeaProjects/jackson-core/src/main/java/com/fasterxml/jackson/core/JsonFactory.java"; // Provide the actual project path
         String methodName = "_decorate"; // Provide the method name
+        String basePath = "/home/vasilis/IdeaProjects";
 
         try {
             Files.walk(Paths.get(projectPath))
                     .filter(Files::isRegularFile)
                     .filter(path -> path.toString().endsWith(".java"))
-                    .forEach(path -> findAndPrintMethodLines(path, methodName));
+                    .forEach(path -> findAndPrintMethodLines(path, basePath, methodName));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -44,7 +45,7 @@ public class MethodLocator {
                 Files.walk(Paths.get(methodInfo.getClassPath()))
                         .filter(Files::isRegularFile)
                         .filter(path -> path.toString().endsWith(".java"))
-                        .forEach(path -> findAndPrintMethodLines(path, methodInfo.getMethodName()));
+                        .forEach(path -> findAndPrintMethodLines(path, methodInfo.getBasePath(), methodInfo.getMethodName()));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -65,7 +66,7 @@ public class MethodLocator {
     }
 
 
-    private static void findAndPrintMethodLines(Path path, String methodName) {
+    private static void findAndPrintMethodLines(Path path, String basePath, String methodName) {
         try (BufferedReader br = new BufferedReader(new FileReader(path.toFile()))) {
             String line;
             int lineNumber = 1;
@@ -100,8 +101,8 @@ public class MethodLocator {
                         insideMethod = false;
                         endLine = lineNumber;
                         System.out.println("Method '" + methodName + "' End Line: " + lineNumber);
-
-                        JsonInfo jsonInfo = new JsonInfo(path.toString(), startLine, endLine, "popular-method", methodLines.toString());
+                        String relativePath = getRelativePath(basePath, path.toString());
+                        JsonInfo jsonInfo = new JsonInfo(relativePath, startLine, endLine, "popular-method", methodLines.toString());
                         jsonInfoList.add(jsonInfo);
 
                         break;
@@ -122,5 +123,11 @@ public class MethodLocator {
             }
         }
         return count;
+    }
+
+    public static String getRelativePath(String basePath, String absolutePath) {
+        File baseFile = new File(basePath);
+        File absoluteFile = new File(absolutePath);
+        return baseFile.toURI().relativize(absoluteFile.toURI()).getPath();
     }
 }

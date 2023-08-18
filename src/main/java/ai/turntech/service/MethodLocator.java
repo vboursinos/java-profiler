@@ -49,48 +49,57 @@ public class MethodLocator {
         }
     }
 
-
-    private static void findAndPrintMethodLines(Path path, String basePath, String methodName) {
+    public static void findAndPrintMethodLines(Path path, String basePath, String methodName) {
         try (BufferedReader br = new BufferedReader(new FileReader(path.toFile()))) {
-            String line;
-            int lineNumber = 1;
-            int curlyBraceCount = 0; // Track nested curly braces
-            StringBuilder methodLines = new StringBuilder();
-            int startLine = 0;
-            int endLine = 0;
-
-            while ((line = br.readLine()) != null) {
-                if (line.contains(methodName + "(") && line.endsWith("{")) {
-                    // Found a method start
-                    startLine = lineNumber;
-                    curlyBraceCount = 1;
-                    methodLines = new StringBuilder(line + "\n");
-                    System.out.println("-----------------------------");
-                    System.out.println(path);
-                    System.out.println(line);
-                    // Continue reading lines until we find the end of the method
-                    while ((line = br.readLine()) != null) {
-                        System.out.println(line);
-                        methodLines.append(line).append("\n");
-                        curlyBraceCount += countOccurrences(line, '{');
-                        curlyBraceCount -= countOccurrences(line, '}');
-                        if (curlyBraceCount == 0) {
-                            lineNumber++;
-                            endLine = lineNumber;
-                            String relativePath = getRelativePath(basePath, path.toString());
-                            JsonInfo jsonInfo = new JsonInfo(relativePath, startLine, endLine, "popular-method", methodLines.toString());
-                            jsonInfoList.add(jsonInfo);
-                            break;
-                        }
-                        lineNumber++;
-                    }
-                }
-                lineNumber++;
-            }
+            processMethodLines(br, path, basePath, methodName);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
+    private static void processMethodLines(BufferedReader br, Path path, String basePath, String methodName) throws IOException {
+        String line;
+        int lineNumber = 1;
+
+        while ((line = br.readLine()) != null) {
+            if (line.contains(methodName + "(") && line.endsWith("{")) {
+                // Found a method start
+                processMethodStart(br, line, lineNumber, path, basePath);
+            }
+            lineNumber++;
+        }
+    }
+
+
+    private static void processMethodStart(BufferedReader br, String initialLine, int startLineNumber, Path path, String basePath) throws IOException {
+        String line;
+        int curlyBraceCount = 1; // Track nested curly braces
+        StringBuilder methodLines = new StringBuilder(initialLine + "\n");
+        System.out.println("-----------------------------");
+        System.out.println(path);
+        System.out.println(initialLine);
+        int lineNumber = startLineNumber;
+
+        // Continue reading lines until we find the end of the method
+        while ((line = br.readLine()) != null) {
+            System.out.println(line);
+            methodLines.append(line).append("\n");
+            curlyBraceCount += countOccurrences(line, '{');
+            curlyBraceCount -= countOccurrences(line, '}');
+            if (curlyBraceCount == 0) {
+                processMethodEnd(basePath, path, startLineNumber, lineNumber, methodLines.toString());
+                break;
+            }
+            lineNumber++;
+        }
+    }
+
+    private static void processMethodEnd(String basePath, Path path, int startLine, int endLine, String methodLines) {
+        String relativePath = getRelativePath(basePath, path.toString());
+        JsonInfo jsonInfo = new JsonInfo(relativePath, startLine, endLine, "popular-method", methodLines);
+        jsonInfoList.add(jsonInfo);
+    }
+
 
     private static int countOccurrences(String str, char target) {
         int count = 0;

@@ -8,14 +8,12 @@ import java.io.IOException;
 public class JcmdProfiler {
     public static void main(String[] args) throws IOException {
         try {
-            // Step 1: Run 'jcmd' and write output to jcmd.txt
             ProcessBuilder jcmdProcessBuilder = new ProcessBuilder("jcmd");
             jcmdProcessBuilder.redirectOutput(new File("jcmd.txt"));
             Process jcmdProcess = jcmdProcessBuilder.start();
             int jcmdExitCode = jcmdProcess.waitFor();
 
             if (jcmdExitCode == 0) {
-                // Step 2: Parse the jcmd.txt file for SimpleBenchmark
                 BufferedReader reader = new BufferedReader(new FileReader("jcmd.txt"));
                 String line;
                 String simpleBenchmarkOutput = null;

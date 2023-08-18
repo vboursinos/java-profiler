@@ -91,6 +91,7 @@ public class MethodLocator {
                         curlyBraceCount += countOccurrences(line, '{');
                         curlyBraceCount -= countOccurrences(line, '}');
                         if (curlyBraceCount == 0) {
+                            lineNumber++;
                             endLine = lineNumber;
                             String relativePath = getRelativePath(basePath, path.toString());
                             JsonInfo jsonInfo = new JsonInfo(relativePath, startLine, endLine, "popular-method", methodLines.toString());

@@ -1,4 +1,4 @@
-package ai.turntech;
+package ai.turntech.service;
 
 import ai.turntech.model.JsonInfo;
 import ai.turntech.model.MethodInfo;

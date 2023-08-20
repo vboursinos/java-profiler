@@ -4,6 +4,7 @@ import ai.turntech.model.MethodInfo;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,27 +45,33 @@ public class MethodProfiler {
         return sortMethods;
     }
 
-    private static List<MethodInfo> extractMethodInfoList(List<Map.Entry<String, Integer>> sortedTokens, String methodPathPrefix, String projectPrefix, String basePath, int numberOfMethods) {
+    private static List<MethodInfo> extractMethodInfoList(List<Map.Entry<String, Integer>> sortedTokens, String methodPathPrefix, String projectPrefix, String basePath, int numberOfMethods) throws IOException {
         List<MethodInfo> methodInfoList = new ArrayList<>();
         int count = 0;
+        FileWriter writer = null;
+        try {
+            writer = new FileWriter("popular-methods.txt");
+            for (Map.Entry<String, Integer> entry : sortedTokens) {
+                if (entry.getKey().startsWith(methodPathPrefix)) {
+                    if (count >= numberOfMethods) {
+                        break;
+                    }
 
-        for (Map.Entry<String, Integer> entry : sortedTokens) {
-            if (entry.getKey().startsWith(methodPathPrefix)) {
-                if (count >= numberOfMethods) {
-                    break;
+                    System.out.println(entry.getKey() + " : " + entry.getValue());
+                    writer.write(entry.getKey() + " : " + entry.getValue() + "\n");
+                    String[] tokens = entry.getKey().split("\\.");
+
+                    String classPath = projectPrefix.concat("/").concat(tokens[0]).concat(".java");
+                    MethodInfo methodInfo = new MethodInfo(classPath, basePath, tokens[1]);
+                    methodInfoList.add(methodInfo);
+                    count++;
                 }
-
-                System.out.println(entry.getKey() + " : " + entry.getValue());
-
-                String[] tokens = entry.getKey().split("\\.");
-
-                String classPath = projectPrefix.concat("/").concat(tokens[0]).concat(".java");
-                MethodInfo methodInfo = new MethodInfo(classPath, basePath, tokens[1]);
-                methodInfoList.add(methodInfo);
-                count++;
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            writer.close();
         }
-
         return methodInfoList;
     }
 }
